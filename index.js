@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
+const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
@@ -19,6 +20,13 @@ async function run() {
         const productsCollection = client.db('manufacturer_website').collection('products');
         const usersCollection = client.db('manufacturer_website').collection('users');
 
+        app.get('/product', async (req, res) => {
+            const query = {};
+            const cursor = productsCollection.find(query);
+            const product = await cursor.limit(6).toArray();
+            res.send(product);
+        })
+
         app.get('/products', async (req, res) => {
             const query = {};
             const cursor = productsCollection.find(query);
@@ -28,7 +36,8 @@ async function run() {
 
 
 
-        //put
+        //users
+
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
             const user = req.body;
