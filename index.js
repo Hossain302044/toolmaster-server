@@ -34,6 +34,7 @@ async function run() {
         await client.connect();
         const productsCollection = client.db('manufacturer_website').collection('products');
         const usersCollection = client.db('manufacturer_website').collection('users');
+        const reviewsCollection = client.db('manufacturer_website').collection('reviews');
 
         app.get('/product', async (req, res) => {
             const query = {};
@@ -106,6 +107,13 @@ async function run() {
             const user = await usersCollection.findOne({ email: email });
             const isAdmin = user.rol === 'admin';
             res.send({ admin: isAdmin });
+        })
+
+        //review
+        app.post('/reviews', async (req, res) => {
+            const review = req.body;
+            const result = await reviewsCollection.insertOne(review);
+            res.send(result);
         })
     }
     finally {
