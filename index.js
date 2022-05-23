@@ -49,6 +49,14 @@ async function run() {
             res.send(products);
         })
 
+        app.post('/products', async (req, res) => {
+            const product = req.body;
+            const result = await productsCollection.insertOne(product);
+            res.send(result);
+        })
+
+
+
 
 
         //users
@@ -87,6 +95,10 @@ async function run() {
             const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '24h' })
             res.send({ result, token });
         });
+
+
+
+
 
         //admin
         app.get('/admin/:email', async (req, res) => {
