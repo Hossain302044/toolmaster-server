@@ -35,6 +35,7 @@ async function run() {
         const productsCollection = client.db('manufacturer_website').collection('products');
         const usersCollection = client.db('manufacturer_website').collection('users');
         const reviewsCollection = client.db('manufacturer_website').collection('reviews');
+        const bookingsCollection = client.db('manufacturer_website').collection('bookings');
 
         app.get('/product', async (req, res) => {
             const query = {};
@@ -61,6 +62,23 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const product = await productsCollection.findOne(query);
             res.send(product);
+        })
+
+        app.patch('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const productQty = req.body;
+            const productQuantity = productQty.qty;
+            const filter = { _id: ObjectId(id) };
+            const product = await productsCollection.findOne(filter);
+            const qty = product.qty;
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    qty: productQuantity,
+                }
+            };
+            const result = await productsCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
         })
 
         app.delete('/products/:id', async (req, res) => {
@@ -128,6 +146,21 @@ async function run() {
             const review = req.body;
             const result = await reviewsCollection.insertOne(review);
             res.send(result);
+        })
+
+
+        //bookings
+
+        app.post('/booking', async (req, res) => {
+            const booking = req.body;
+            const result = await bookingsCollection.insertOne(booking);
+            res.send({ success: true, result });
+        })
+
+        app.get('/booking', async (req, res) => {
+            const query = {};
+            const products = await bookingsCollection.find(query).toArray();
+            res.send(products);
         })
     }
     finally {
