@@ -37,6 +37,7 @@ async function run() {
         const usersCollection = client.db('manufacturer_website').collection('users');
         const reviewsCollection = client.db('manufacturer_website').collection('reviews');
         const bookingsCollection = client.db('manufacturer_website').collection('bookings');
+        const paymentCollection = client.db('manufacturer_website').collection('payments');
 
         app.get('/product', async (req, res) => {
             const query = {};
@@ -138,9 +139,10 @@ async function run() {
         app.get('/admin/:email', async (req, res) => {
             const email = req.params.email;
             const user = await usersCollection.findOne({ email: email });
-            const isAdmin = user.rol === 'admin';
+            const isAdmin = user.role === 'admin';
             res.send({ admin: isAdmin });
         })
+
 
         //review
         app.get('/reviews', async (req, res) => {
@@ -156,6 +158,8 @@ async function run() {
 
 
         //bookings
+
+
 
         app.post('/booking', async (req, res) => {
             const booking = req.body;
@@ -175,6 +179,33 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const bookings = await bookingsCollection.findOne(query);
             res.send(bookings);
+        })
+
+        app.patch('/booking/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const payment = req.body;
+            const filter = { _id: ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            }
+            const result = await paymentCollection.insertOne(payment);
+            const updatedBooking = await bookingsCollection.updateOne(filter, updatedDoc);
+            res.send(updatedBooking);
+        })
+
+        app.patch('/bookings/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    delivery: true
+                }
+            }
+            const updatedBooking = await bookingsCollection.updateOne(filter, updatedDoc);
+            res.send(updatedBooking);
         })
 
         //query email
