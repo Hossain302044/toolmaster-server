@@ -5,6 +5,7 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 
 app.use(cors());
@@ -142,6 +143,11 @@ async function run() {
         })
 
         //review
+        app.get('/reviews', async (req, res) => {
+            const query = {};
+            const reviews = await reviewsCollection.find(query).toArray();
+            res.send(reviews);
+        })
         app.post('/reviews', async (req, res) => {
             const review = req.body;
             const result = await reviewsCollection.insertOne(review);
@@ -157,11 +163,42 @@ async function run() {
             res.send({ success: true, result });
         })
 
+
         app.get('/booking', async (req, res) => {
             const query = {};
             const products = await bookingsCollection.find(query).toArray();
             res.send(products);
         })
+
+        app.get('/booking/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const bookings = await bookingsCollection.findOne(query);
+            res.send(bookings);
+        })
+
+        //query email
+        app.get('/bookings', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const cursor = bookingsCollection.find(query);
+            const myBookings = await cursor.toArray();
+            res.send(myBookings);
+        });
+
+        //payments 
+
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const booking = req.body;
+            const price = booking.price;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+            res.send({ clientSecret: paymentIntent.client_secret })
+        });
     }
     finally {
 
