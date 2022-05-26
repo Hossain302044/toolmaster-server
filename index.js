@@ -218,6 +218,13 @@ async function run() {
             res.send(updatedBooking);
         })
 
+        app.delete('/bookings/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await bookingsCollection.deleteOne(query);
+            res.send(result);
+        })
+
         //query email
         app.get('/bookings', verifyJWT, async (req, res) => {
             const email = req.query.email;
