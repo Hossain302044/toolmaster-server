@@ -57,7 +57,7 @@ async function run() {
 
         app.get('/product', async (req, res) => {
             const query = {};
-            const cursor = productsCollection.find(query);
+            const cursor = productsCollection.find(query).sort({ _id: -1 });
             const product = await cursor.limit(6).toArray();
             res.send(product);
         })
@@ -157,7 +157,8 @@ async function run() {
         //review
         app.get('/reviews', async (req, res) => {
             const query = {};
-            const reviews = await reviewsCollection.find(query).toArray();
+            const cursor = reviewsCollection.find(query).sort({ _id: -1 });
+            const reviews = await cursor.limit(6).toArray();
             res.send(reviews);
         })
         app.post('/reviews', verifyJWT, async (req, res) => {
